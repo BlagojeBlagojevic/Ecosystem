@@ -20,12 +20,13 @@
 #include<math.h>
 #include<omp.h>
 #undef main 
-#define width  1200
-#define height 800
+#define width  800
+#define height 600
 //#define Nprey 30
 #define SEED  10
-#define Nfood 300
-size_t Nprey = 30;
+#define Nfood 1000
+#define MutationChance 0.1
+size_t Nprey = 50;
 
 
 typedef struct PREY{
@@ -52,8 +53,8 @@ void RandFood(SDL_Point *food)
 }
 	else
 	{
-			food->x = rand()%(width/2)+300;
-			food->y = rand()%(height-36);
+			food->x = rand()%(width-300)+300;
+			food->y = rand()%(height-30)+30;
 	}
 
 	 
@@ -107,10 +108,10 @@ void Init(PREY *prey, FOOD *food)           //INIT PRAY,FOOD,PREDATOR
 		prey[i].col.b = 255;
 	}
 
-		prey[i].Gens[0]= (float)rand() / RAND_MAX + 0.1;   //ENERGY WHEN GET FOOD
-		prey[i].Gens[1] =  rand() % 4;   //SPEED WHEN RUNING FROM PREDATOR
-		prey[i].Gens[2] = rand() % 30+1;   //How Mutch ofspring get energy
-		prey[i].Gens[3] = (rand()%4+1);
+		prey[i].Gens[0]=  (float)rand() / RAND_MAX + 0.1;   //ENERGY WHEN GET FOOD
+		prey[i].Gens[1] = (float)(rand() % 4)+1;   // SPEED TOWORD FOOD
+		prey[i].Gens[2] = (float)(rand() % 6+1);   //How Mutch ofspring get energy
+		prey[i].Gens[3] = (float)(rand()%4+1);
 		
 		//prey[i].Gens[1]= (float)rand() /RAND_MAX;       
 	}
@@ -206,19 +207,19 @@ void UpdateStep(PREY *prey, FOOD *food)
 	//Update prey
 	
 	//VISION RANGE 20 PIXEL AROUND 
-	for(size_t i = 0; i < Nprey; i++){ prey[i].Energy-=(prey[i].Gens[0]+rand()%7);
+	for(size_t i = 0; i < Nprey; i++){ prey[i].Energy-=(prey[i].Gens[0]+rand()%20);
 		int isMove=0;
 		for(size_t j = 0; j < Nfood; j++)
 		{
 			
 		
 			
-			if((food[j].Cordinate.y >= prey[i].Cordinate.y-20)&&(food[j].Cordinate.y <= prey[i].Cordinate.y+20))
+			if((food[j].Cordinate.y >= (prey[i].Cordinate.y-25))&&(food[j].Cordinate.y <= (prey[i].Cordinate.y+25)))
 			{
 				isMove=1;
 					if(food[j].Cordinate.x >= prey[i].Cordinate.x){
 						if(prey[i].Energy>0){
-							prey[i].Cordinate.x++;
+							prey[i].Cordinate.x+=prey[i].Gens[1];
 							//if(p)
 							
 							//prey[i].Energy--;
@@ -228,14 +229,14 @@ void UpdateStep(PREY *prey, FOOD *food)
 						
 					if(food[j].Cordinate.x <= prey[i].Cordinate.x){
 							if(prey[i].Energy>0){
-							prey[i].Cordinate.x--;
+							prey[i].Cordinate.x-=prey[i].Gens[1];;
 							//prey[i].Energy--;
 						}
 							
 						}
 					if(food[j].Cordinate.x >= (prey[i].Cordinate.x-15)&&(food[j].Cordinate.x <= (prey[i].Cordinate.x+15))){
 						RandFood(&food[j].Cordinate);
-						prey[i].Energy+=4000*prey[i].Gens[0];
+						prey[i].Energy+=1000*prey[i].Gens[0];
 					}
 						//system("pause");
 			}
@@ -279,7 +280,7 @@ void ReproducePrey(PREY *prey){
 					prey[Nprey].col.b=prey[i].col.b;
 					
 					//Mutation
-					if((float)rand()/RAND_MAX<=0.1){
+					if((float)rand()/RAND_MAX<=MutationChance){
 						int a = rand();
 						if(a%4==0){
 							prey[i].Gens[0]= (float)rand() / RAND_MAX + 0.4;   //ENERGY WHEN GET FOOD
@@ -288,7 +289,7 @@ void ReproducePrey(PREY *prey){
 							prey[i].Gens[1] =  rand() % 4;   //SPEED WHEN RUNING FROM PREDATOR							
 						}
 						if(a%4==2){
-									prey[i].Gens[2] = rand() % 15+1;   //How Mutch ofspring get energy
+									prey[i].Gens[2] = rand() % 6+1;   //How Mutch ofspring get energy
 						}
 						if(a%4==3){
 							prey[i].Gens[3] = (rand()%4+1);
@@ -347,10 +348,14 @@ int main(){
 					break;
 				count++;
 			}       //w,r,g,b,y
-		size_t COL[]={0,0,0,0,0};	
+		size_t COL[]={0,0,0,0,0};
+		double GENS[]={0.0f,0.0f,0.0f,0.0f};	
 		for(size_t i = 0; i < Nprey;i++)
 		{
-			           
+			GENS[0]+=prey[i].Gens[0]; 
+			GENS[1]+=prey[i].Gens[1];
+			GENS[2]+=prey[i].Gens[2];
+			GENS[3]+=prey[i].Gens[3];   
 			
 			if(prey[i].col.r==255&&prey[i].col.b==255&&prey[i].col.g==255)
 				COL[0]++;
@@ -373,7 +378,8 @@ int main(){
 	
 	
 	//system("pause");
-	
+	if(Nprey > 0)
+		printf("\nGEN 1: %f \nGEN2: %f \nGEN3: %f \nGEN4: %f\n",(float)GENS[0]/(float)Nprey,(float)GENS[1]/(float)Nprey,(float)GENS[2]/(float)Nprey,(float)GENS[3]/(float)Nprey);	
 	printf("\n\nWHITE: %d\nRED %d\nGRREN: %d\nBLUE: %d\nYELLOW: %d\n",COL[0],COL[1],COL[2],COL[3],COL[4]);
 	printf("\nNesto");
 	return 0;
