@@ -21,14 +21,14 @@
 #include<omp.h>
 #undef main 
 #define width  1600
-#define height 1200
+#define height 1000
 
 //#define Nprey 30
 #define SEED  10
-#define Nfood 300
+#define Nfood 1000
 #define MutationChance 0.1
-#define Nround 1000
-size_t Nprey = 50;
+#define Nround 10000
+size_t Nprey = 300;
 
 
 typedef struct PREY{
@@ -238,7 +238,7 @@ void UpdateStep(PREY *prey, FOOD *food)
 						}
 					if(food[j].Cordinate.x >= (prey[i].Cordinate.x-15)&&(food[j].Cordinate.x <= (prey[i].Cordinate.x+15))){
 						RandFood(&food[j].Cordinate);
-						prey[i].Energy+=4000*prey[i].Gens[0];
+						prey[i].Energy+=2000*prey[i].Gens[0];
 					}
 						//system("pause");
 			}
@@ -247,7 +247,7 @@ void UpdateStep(PREY *prey, FOOD *food)
 			{
 				if(prey[i].Energy>0){
 					
-					if(rand()%5 != prey[i].Gens[3])
+					if(rand()%5 > prey[i].Gens[3])
 						prey[i].Cordinate.y+=randPN();
 					else
 						prey[i].Cordinate.x+=randPN();
