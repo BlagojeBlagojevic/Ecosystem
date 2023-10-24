@@ -20,12 +20,14 @@
 #include<math.h>
 #include<omp.h>
 #undef main 
-#define width  800
-#define height 600
+#define width  1600
+#define height 1200
+
 //#define Nprey 30
 #define SEED  10
-#define Nfood 1000
+#define Nfood 300
 #define MutationChance 0.1
+#define Nround 1000
 size_t Nprey = 50;
 
 
@@ -53,7 +55,7 @@ void RandFood(SDL_Point *food)
 }
 	else
 	{
-			food->x = rand()%(width-300)+300;
+			food->x = rand()%(width-400)+300;
 			food->y = rand()%(height-30)+30;
 	}
 
@@ -70,7 +72,7 @@ void Init(PREY *prey, FOOD *food)           //INIT PRAY,FOOD,PREDATOR
 	}
 	
 	for(size_t i = 0; i < Nprey;i++){
-		prey[i].Cordinate.x = rand()%width;
+		prey[i].Cordinate.x = rand()%(width-30);
 		prey[i].Cordinate.y = rand()%height;
 		prey[i].Energy = 2000+rand()%10000;
 		prey[i].col.a=255;
@@ -96,9 +98,9 @@ void Init(PREY *prey, FOOD *food)           //INIT PRAY,FOOD,PREDATOR
 	}
 	if(i%5==3)
 	{
-		prey[i].col.r = 0;
+		prey[i].col.r = 255;
 		prey[i].col.g = 255;
-		prey[i].col.b = 255;
+		prey[i].col.b = 0;
 	}
 
 	if(i%5==4)
@@ -109,8 +111,8 @@ void Init(PREY *prey, FOOD *food)           //INIT PRAY,FOOD,PREDATOR
 	}
 
 		prey[i].Gens[0]=  (float)rand() / RAND_MAX + 0.1;   //ENERGY WHEN GET FOOD
-		prey[i].Gens[1] = (float)(rand() % 4)+1;   // SPEED TOWORD FOOD
-		prey[i].Gens[2] = (float)(rand() % 6+1);   //How Mutch ofspring get energy
+		prey[i].Gens[1] = (float)(rand() % 4)+1;   // SPEED TOWARD FOOD
+		prey[i].Gens[2] = (float)(rand() % 5+1);   //How Mutch ofspring get energy
 		prey[i].Gens[3] = (float)(rand()%4+1);
 		
 		//prey[i].Gens[1]= (float)rand() /RAND_MAX;       
@@ -214,11 +216,11 @@ void UpdateStep(PREY *prey, FOOD *food)
 			
 		
 			
-			if((food[j].Cordinate.y >= (prey[i].Cordinate.y-25))&&(food[j].Cordinate.y <= (prey[i].Cordinate.y+25)))
+			if((food[j].Cordinate.y >= (prey[i].Cordinate.y-20))&&(food[j].Cordinate.y <= (prey[i].Cordinate.y+20)))
 			{
 				isMove=1;
 					if(food[j].Cordinate.x >= prey[i].Cordinate.x){
-						if(prey[i].Energy>0){
+						if(prey[i].Energy>=0){
 							prey[i].Cordinate.x+=prey[i].Gens[1];
 							//if(p)
 							
@@ -228,7 +230,7 @@ void UpdateStep(PREY *prey, FOOD *food)
 					}
 						
 					if(food[j].Cordinate.x <= prey[i].Cordinate.x){
-							if(prey[i].Energy>0){
+							if(prey[i].Energy>=0){
 							prey[i].Cordinate.x-=prey[i].Gens[1];;
 							//prey[i].Energy--;
 						}
@@ -236,7 +238,7 @@ void UpdateStep(PREY *prey, FOOD *food)
 						}
 					if(food[j].Cordinate.x >= (prey[i].Cordinate.x-15)&&(food[j].Cordinate.x <= (prey[i].Cordinate.x+15))){
 						RandFood(&food[j].Cordinate);
-						prey[i].Energy+=1000*prey[i].Gens[0];
+						prey[i].Energy+=4000*prey[i].Gens[0];
 					}
 						//system("pause");
 			}
@@ -271,28 +273,33 @@ void ReproducePrey(PREY *prey){
 			prey[i].Energy-=10000;
 			if(Nprey < 300){
 				for(size_t j = 0; j < prey[i].Gens[2];j++){
-					memccpy((void*)&prey[Nprey],(void*)&prey[i+j],0,sizeof(PREY));  
-					prey[Nprey].Energy = 10000/(prey[i].Gens[2]); 
+					//memccpy((void*)&prey[Nprey],(void*)&prey[i+j],0,sizeof(PREY));  
+					prey[Nprey].Energy = 10000/(prey[i].Gens[2]+1); 
 					prey[Nprey].Cordinate.x=prey[i].Cordinate.x;
 					prey[Nprey].Cordinate.y=prey[i].Cordinate.y;
 					prey[Nprey].col.r=prey[i].col.r;
 					prey[Nprey].col.g=prey[i].col.g;
 					prey[Nprey].col.b=prey[i].col.b;
+					prey[Nprey].Gens[0]=prey[i].Gens[0];
+					prey[Nprey].Gens[1]=prey[i].Gens[1];
+					prey[Nprey].Gens[2]=prey[i].Gens[2];
+					prey[Nprey].Gens[3]=prey[i].Gens[3];
 					
 					//Mutation
 					if((float)rand()/RAND_MAX<=MutationChance){
+						srand(time(0));
 						int a = rand();
 						if(a%4==0){
 							prey[i].Gens[0]= (float)rand() / RAND_MAX + 0.4;   //ENERGY WHEN GET FOOD
 						}
 						if(a%4==1){
-							prey[i].Gens[1] =  rand() % 4;   //SPEED WHEN RUNING FROM PREDATOR							
+							prey[i].Gens[1] =  (float)(rand() % 4);   //SPEED WHEN RUNING FROM PREDATOR							
 						}
 						if(a%4==2){
-									prey[i].Gens[2] = rand() % 6+1;   //How Mutch ofspring get energy
+									prey[i].Gens[2] = (float)(rand() % 6+1);   //How Mutch ofspring get energy
 						}
 						if(a%4==3){
-							prey[i].Gens[3] = (rand()%4+1);
+							prey[i].Gens[3] = (float)(rand()%4+1);
 							
 						}
 					}
@@ -311,12 +318,26 @@ void ReproducePrey(PREY *prey){
 
 void CheckDeadPrey(PREY *prey){
 	for(size_t i = 0; i < Nprey; i++){
-		if(prey[i].Energy <= 0)
+		if(prey[i].Energy < 0)
 		{
 			for(size_t j = i; j < Nprey-1;j++)
-			memccpy((void*)&prey[j],(void*)&prey[j+1],0,sizeof(PREY)); 
+			{
+			//memccpy((void*)&prey[j],(void*)&prey[j+1],j,sizeof(PREY));
+		
+			prey[j].Gens[0]=prey[j+1].Gens[0];
+			prey[j].Gens[1]=prey[j+1].Gens[1];
+			prey[j].Gens[2]=prey[j+1].Gens[2];
+			prey[j].Gens[3]=prey[j+1].Gens[3];
+			prey[j].Energy = 10000/(prey[j+1].Gens[2]+1); 
+			prey[j].Cordinate.x=prey[j+1].Cordinate.x;
+			prey[j].Cordinate.y=prey[j+1].Cordinate.y;
+			prey[j].col.r=prey[j+1].col.r;
+			prey[j].col.g=prey[j+1].col.g;
+			prey[j].col.b=prey[j+1].col.b;
+
 			Nprey--;
 			printf("Nprey: %d\n", Nprey);
+			}
 		}
 
 }
@@ -328,7 +349,7 @@ int main(){
 	SDL_Window *window;
 	SDL_Renderer *renderer;
 	
-	SDL_CreateWindowAndRenderer(width,height,SDL_RENDERER_ACCELERATED,&window,&renderer);
+	SDL_CreateWindowAndRenderer(width,height,SDL_RENDERER_ACCELERATED | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE,&window,&renderer);
   
 	
 	
@@ -344,23 +365,29 @@ int main(){
 				CheckBoundury(&prey);
 				ReproducePrey(&prey);
 				CheckDeadPrey(&prey);
-				if(count==5000||Nprey==0)
+				if(count==Nround||Nprey==0)
 					break;
 				count++;
 			}       //w,r,g,b,y
 		size_t COL[]={0,0,0,0,0};
 		double GENS[]={0.0f,0.0f,0.0f,0.0f};	
+		double GENSS[]={0.0f,0.0f,0.0f,0.0f};
 		for(size_t i = 0; i < Nprey;i++)
 		{
-			GENS[0]+=prey[i].Gens[0]; 
-			GENS[1]+=prey[i].Gens[1];
-			GENS[2]+=prey[i].Gens[2];
-			GENS[3]+=prey[i].Gens[3];   
+			GENS[0]=prey[i].Gens[0]; 
+			GENS[1]=prey[i].Gens[1];
+			GENS[2]=prey[i].Gens[2];
+			GENS[3]=prey[i].Gens[3];   
+			GENSS[0]+=prey[i].Gens[0]; 
+			GENSS[1]+=prey[i].Gens[1];
+			GENSS[2]+=prey[i].Gens[2];
+			GENSS[3]+=prey[i].Gens[3];
+			printf("\nGEN 1: %f \nGEN2: %f \nGEN3: %f \nGEN4: %f\n",GENS[0],GENS[1],GENS[2],GENS[3]);
 			
 			if(prey[i].col.r==255&&prey[i].col.b==255&&prey[i].col.g==255)
 				COL[0]++;
 				
-			else if(prey[i].col.g==255&&prey[i].col.b==255)
+			else if(prey[i].col.g==255&&prey[i].col.r==255)
 				COL[4]++;
 				
 			else if(prey[i].col.r==255)
@@ -379,7 +406,7 @@ int main(){
 	
 	//system("pause");
 	if(Nprey > 0)
-		printf("\nGEN 1: %f \nGEN2: %f \nGEN3: %f \nGEN4: %f\n",(float)GENS[0]/(float)Nprey,(float)GENS[1]/(float)Nprey,(float)GENS[2]/(float)Nprey,(float)GENS[3]/(float)Nprey);	
+		printf("\nAVR GEN 1: %f \nAVR GEN2: %f \nAVR GEN3: %f \nAVR GEN4: %f\n",(float)GENSS[0]/(float)Nprey,(float)GENSS[1]/(float)Nprey,(float)GENSS[2]/(float)Nprey,(float)GENSS[3]/(float)Nprey);	
 	printf("\n\nWHITE: %d\nRED %d\nGRREN: %d\nBLUE: %d\nYELLOW: %d\n",COL[0],COL[1],COL[2],COL[3],COL[4]);
 	printf("\nNesto");
 	return 0;
