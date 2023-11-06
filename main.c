@@ -337,6 +337,8 @@ int main(){
 	Init(&prey,&food);
 	int count=0;
 	while(1){	
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {};
 	#pragma omp parallel			
 				{
 				MainRenderer(renderer,&prey,&food);
